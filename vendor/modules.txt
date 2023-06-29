@@ -1,0 +1,10 @@
+# github.com/Kagami/go-face v0.0.0-20210630145111-0c14797b4d0e
+## explicit; go 1.14
+github.com/Kagami/go-face
+# github.com/godbus/dbus/v5 v5.1.0
+## explicit; go 1.12
+github.com/godbus/dbus/v5
+github.com/godbus/dbus/v5/introspect
+# github.com/patrickmn/go-cache v2.1.0+incompatible
+## explicit
+github.com/patrickmn/go-cache
