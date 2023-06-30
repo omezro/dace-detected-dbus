@@ -32,7 +32,7 @@ const intro = `
                     <arg type="s" direction="out"/>
                 </method>
                 <method name="GetComparedImage">
-                    <arg type="ay" direction="out"/>
+                    <arg type="s" direction="out"/>
                 </method>
 	</interface>` + introspect.IntrospectDataString + `</node> `
 

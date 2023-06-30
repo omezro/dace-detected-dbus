@@ -5,7 +5,6 @@ import (
 	"faceLiveDbus/pkg/goface"
 	"io"
 	"log"
-	"os"
 	"regexp"
 	"strconv"
 	"time"
@@ -17,6 +16,7 @@ import (
 const (
     CacheKeyMouse = "mouse"
     CacheKeyEye = "eye"
+    CacheKeyImg = "img"
 )
 
 const FaceModels = "/home/omega/goprogram/faceLiveDbus/pkg/goface/"
@@ -39,14 +39,9 @@ type LiveDetected struct {
 }
 
 func (l LiveDetected) Init() (string, *dbus.Error) {
-    //mouse, found := l.Cache.Get(CacheKeyMouse)
-    //if found || mouse != nil {
     l.Cache.Set(CacheKeyMouse, "", CacheKeyDelay)
-    //}
-    //eye, found := l.Cache.Get(CacheKeyEye)
-    //if found || eye != nil {
     l.Cache.Set(CacheKeyEye, "", CacheKeyDelay)
-    //}
+    l.Cache.Set(CacheKeyImg, "", CacheKeyDelay) 
     return "done", nil
 }
 
@@ -90,7 +85,7 @@ func (l LiveDetected) LiveDetection(detectedType string, b64Str string) (string,
         }
         l.Cache.Set(CacheKeyMouse, mousev+strconv.Itoa(mouseCode), CacheKeyDelay)
         if mouseCode == goface.MouseClose {
-            err = writeFaceImg(buf)
+            err = l.saveFaceImg(b64Str)
             if err != nil {
                 return "0", &dbus.Error{
                     Name: "org.freedesktop.DBus.Error.InvalidArgs",
@@ -177,23 +172,26 @@ func (l LiveDetected) IsEyePass() (string, bool) {
     return eyev, false
 }
 
-func (l LiveDetected) GetComparedImage() ([]byte, *dbus.Error) {
-    rspByte, err := os.ReadFile("./face_img.jpg")
-    if err != nil {
-        return nil, &dbus.Error{}
+func (l LiveDetected) GetComparedImage() (string, *dbus.Error) {
+    img, found := l.Cache.Get(CacheKeyImg)
+    if !found {
+        return "", &dbus.Error{
+            Name: "org.freedesktop.DBus.Error.InvalidArgs",     
+            Body: []interface{}{"image data not init"},
+        }
     }
-    return rspByte, nil
+    imgStr, ok := img.(string)
+    if !ok {
+        return "", &dbus.Error{
+            Name: "org.freedesktop.DBus.Error.InvalidArgs",
+            Body: []interface{}{"image data type error"},
+        }
+    }
+
+    return imgStr, nil
 }
 
-func writeFaceImg(buf []byte) error {
-    fw, err := os.OpenFile("./face_img.jpg", os.O_RDWR|os.O_TRUNC|os.O_CREATE, 0666)
-    if err != nil {
-        return err
-    }
-    defer fw.Close()
-    _, err = fw.Write(buf)
-    if err != nil {
-        return err 
-    }
+func (l LiveDetected) saveFaceImg(b64Img string) error {
+    l.Cache.Set(CacheKeyImg, b64Img, CacheKeyDelay) 
     return nil
 }
